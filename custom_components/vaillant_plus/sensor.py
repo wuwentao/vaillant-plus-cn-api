@@ -107,6 +107,26 @@ SENSOR_DESCRIPTIONS = (
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
     ),
+    SensorEntityDescription(
+        key="Slot_current_CH",
+        name="Slot Current CH",
+    ),
+    SensorEntityDescription(
+        key="Slot_current_DHW",
+        name="Slot Current DHW",
+    ),
+    SensorEntityDescription(
+        key="Heating_System_Setting",
+        name="Heating System Setting",
+    ),
+    SensorEntityDescription(
+        key="Time_Slot_Type",
+        name="Time Slot Type",
+    ),
+    SensorEntityDescription(
+        key="Heating_Curve",
+        name="Heating Curve",
+    ),
 )
 
 
