@@ -1,15 +1,22 @@
 """Define package constants."""
+
 import logging
 import base64
 
 LOGGER = logging.getLogger(__package__)
 
 API_HOST = "https://vicapi.vaillant.com.cn"
-
-APP_ID = base64.b64decode("MWY1YjkzNzNmZTk2NGYyNTgxYjBhM2EzZTI2MzYxZTY=").decode("ascii")
-APP_KEY = base64.b64decode("OTEwOWZiM2VhNmMwNGNmMWJlMzRjNzFmZjgyYTUxZWM=").decode("ascii")
+APP_VERSION = "07.00.002"
+APP_ID = base64.b64decode("MWY1YjkzNzNmZTk2NGYyNTgxYjBhM2EzZTI2MzYxZTY=").decode(
+    "ascii"
+)
+APP_KEY = base64.b64decode("OTEwOWZiM2VhNmMwNGNmMWJlMzRjNzFmZjgyYTUxZWM=").decode(
+    "ascii"
+)
 APP_AUTH = base64.b64decode("WVhCd0xYYzZhVzkwTWxFeFdETlk=").decode("ascii")
-DEFAULT_USER_AGENT = base64.b64decode("VmFpbGxhbnRQbHVzLzIzMDMyOTAwNSBDRk5ldHdvcmsvMTQ4NSBEYXJ3aW4vMjMuMS4w").decode("ascii")
+DEFAULT_USER_AGENT = base64.b64decode(
+    "VmFpbGxhbnRQbHVzLzIzMDMyOTMyNyBDRk5ldHdvcmsvMzgyNi42MDAuNDEgRGFyd2luLzI0LjYuMA=="
+).decode("ascii")
 
 STATE_CONNECTING = "connecting"
 STATE_CONNECTED = "connected"

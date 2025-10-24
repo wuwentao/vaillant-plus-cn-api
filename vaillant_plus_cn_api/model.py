@@ -23,7 +23,8 @@ class Device:
     product_verbose_name: str
     is_online: bool
     is_manager: bool
-    group_id: int
+    home_id: int
+    room_id: int
     sno: str
     create_time: str
     model_alias: str
@@ -64,7 +65,7 @@ class Token:
             access_token=data[CONF_TOKEN],
             uid=data[CONF_UID],
         )
-    
+
     @classmethod
     def equals(cls, token1: Token, token2: Token) -> bool:
         """Compare if two tokens equals"""

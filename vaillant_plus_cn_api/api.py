@@ -1,4 +1,5 @@
 """Define API client to interact with the Vaillant API."""
+
 from __future__ import annotations
 
 import logging
@@ -12,6 +13,7 @@ from .const import (
     API_HOST,
     APP_KEY,
     APP_AUTH,
+    APP_VERSION,
     DEFAULT_USER_AGENT,
 )
 from .errors import RequestError, InvalidAuthError, InvalidCredentialsError
@@ -30,6 +32,7 @@ class VaillantApiClient:
         app_key: str = APP_KEY,
         app_auth: str = APP_AUTH,
         user_agent: str = DEFAULT_USER_AGENT,
+        version: str = APP_VERSION,
         logger: logging.Logger = LOGGER,
         session: ClientSession | None = None,
     ) -> None:
@@ -43,6 +46,7 @@ class VaillantApiClient:
         """
         self._application_key: str = app_key
         self._application_auth: str = app_auth
+        self._application_version: str = version
         self._access_token: str = ""
         self._user_agent: str = user_agent
         self._logger = logger
@@ -54,9 +58,7 @@ class VaillantApiClient:
             raise_for_status=False,
         )
 
-    async def _request(
-        self, method: str, url: str, **kwargs: Any
-    ) -> dict[str, Any]:
+    async def _request(self, method: str, url: str, **kwargs: Any) -> dict[str, Any]:
         """Make a request against the API.
 
         Args:
@@ -75,6 +77,7 @@ class VaillantApiClient:
         kwargs.setdefault("headers", {})
 
         kwargs["headers"]["appkey"] = self._application_key
+        kwargs["headers"]["version"] = self._application_version
         kwargs["headers"]["User-Agent"] = self._user_agent
 
         if "Authorization" not in kwargs["headers"] and self._access_token != "":
@@ -92,13 +95,21 @@ class VaillantApiClient:
                 data = {}
                 if 399 < resp.status and 500 > resp.status:
                     # Example error: Invalid auth. Status: 424. Content: {"code":9006,"msg":"token 过期","data":"Invalid token: xxxx"}
-                    self._logger.warning("Invalid auth. Status: %s. Content: %s", resp.status, await resp.text())
+                    self._logger.warning(
+                        "Invalid auth. Status: %s. Content: %s",
+                        resp.status,
+                        await resp.text(),
+                    )
                     raise InvalidAuthError
-                
+
                 if 200 == resp.status:
                     data = await resp.json(content_type=None)
                 else:
-                    self._logger.error("Request Error. Status: %s. Content: %s", resp.status, await resp.text())
+                    self._logger.error(
+                        "Request Error. Status: %s. Content: %s",
+                        resp.status,
+                        await resp.text(),
+                    )
                     resp.raise_for_status()
         except ClientError as err:
             raise RequestError(f"Error requesting data from {url}: {err}") from err
@@ -126,7 +137,10 @@ class VaillantApiClient:
             "Authorization": f"Basic {self._application_auth}",
         }
         resp = await self._request(
-            "post", "auth/oauth/token?grant_type=password", data=FormData(data), headers=headers
+            "post",
+            "auth/oauth/token?grant_type=password",
+            data=FormData(data),
+            headers=headers,
         )
         if resp is None or resp["code"] != 200 or resp["access_token"] is None:
             raise InvalidCredentialsError
@@ -138,7 +152,7 @@ class VaillantApiClient:
             access_token=resp["access_token"],
             uid=resp["user_id"],
         )
-        
+
         self.update_token(token)
 
         return token
@@ -147,7 +161,7 @@ class VaillantApiClient:
         """Get device list."""
         resp = await self._request(
             "get",
-            f"app/device/getBindList?appKey={self._application_key}&version=1.0",
+            f"app/device/getBindList?appKey={self._application_key}&version={self._application_version}",
         )
         if resp.get("code") != 200:
             raise RequestError
@@ -161,7 +175,8 @@ class VaillantApiClient:
                 product_verbose_name=d.get("verboseName"),
                 is_online=d.get("isOnline") == 1,
                 is_manager=d.get("isManger") == 1,
-                group_id=d.get("groupId"),
+                home_id=d.get("homeId"),
+                room_id=d.get("roomId"),
                 sno=d.get("sno"),
                 create_time=d.get("ctime"),
                 last_offline_time=d.get("lastOfflineTime"),
@@ -180,12 +195,9 @@ class VaillantApiClient:
             f"app/device/control/{device_id}",
             json={
                 "appKey": self._application_key,
-                "data": {
-                    "attrs": attrs
-                },
-                "version": "1.0"
-            }
+                "data": {"attrs": attrs},
+                "version": self._application_version,
+            },
         )
         if resp.get("code") != 200:
             raise RequestError
-        
